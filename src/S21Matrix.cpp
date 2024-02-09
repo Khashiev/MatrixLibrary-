@@ -167,3 +167,159 @@ void S21Matrix::MulMatrix(const S21Matrix &other) {
 
   *this = res;
 }
+
+S21Matrix S21Matrix::Transpose() {
+  S21Matrix res(_cols, _rows);
+
+  for (int i = 0; i < _rows; i++) {
+    for (int j = 0; j < _cols; j++) {
+      res._matrix[j][i] = _matrix[i][j];
+    }
+  }
+
+  return res;
+}
+
+double S21Matrix::Determinant() {
+  if (_rows != _cols) {
+    throw std::logic_error("Invalid matrix size");
+  }
+
+  if (_rows == 1) {
+    return _matrix[0][0];
+  }
+
+  if (_rows == 2) {
+    return _matrix[0][0] * _matrix[1][1] - _matrix[1][0] * _matrix[0][1];
+  }
+
+  double result = 1;
+  double number = 0;
+  S21Matrix temp(*this);
+
+  for (int k = 0; k < _rows; k++) {
+    for (int i = k; i < _rows; i++) {
+      number = temp(i, k);
+      if (fabs(number) >= 1e-6) {
+        for (int j = 0; j < _cols; j++) {
+          temp(i, j) /= number;
+        }
+        result *= number;
+      } else if (i == k) {
+        return 0.0;
+      }
+    }
+
+    for (int i = k + 1; i < _rows; i++) {
+      if (fabs(temp(i, k) >= 1e-6)) {
+        for (int j = k; j < _cols; j++) {
+          temp(i, j) -= temp(k, j);
+        }
+      }
+    }
+  }
+
+  result *= llround(temp(_rows - 1, _cols - 1) * 1e7) / 1e7;
+  result = llround(result * 1e7) / 1e7;
+
+  return result;
+}
+
+// double S21Matrix::DetTwo() const {
+//   return _matrix[0][0] * _matrix[1][1] - _matrix[1][0] * _matrix[0][1];
+// }
+
+double S21Matrix::GetMinor(int i, int j) {
+  double minor = 0.0;
+
+  if (_rows == 2) {
+    for (int m = 0; m < _rows; m++) {
+      for (int n = 0; n < _cols; n++) {
+        if (m != i && n != j) {
+          minor = _matrix[m][n];
+        }
+      }
+    }
+  } else {
+    int x = 0;
+    int y = 0;
+    S21Matrix res(_rows - 1, _cols - 1);
+
+    for (int m = 0; m < _rows; m++) {
+      if (m != i) {
+        for (int n = 0; n < _cols; n++) {
+          if (n != j) {
+            res(x, y) = _matrix[m][n];
+            y++;
+          }
+        }
+        x++;
+        y = 0;
+      }
+    }
+
+    minor = res.Determinant();
+
+    // if (res._cols > 2) {
+    //   minor = res.Determinant();
+    // } else {
+    //   minor = res.DetTwo();
+    // }
+  }
+
+  return minor;
+}
+
+void S21Matrix::ResMatrix(S21Matrix &result) {
+  for (int i = 0; i < result._rows; i++) {
+    for (int j = 0; j < result._cols; j++) {
+      result(i, j) = GetMinor(i, j);
+    }
+  }
+}
+
+void S21Matrix::Complements(S21Matrix &result) {
+  ResMatrix(result);
+
+  for (int i = 0; i < _rows; i++) {
+    for (int j = 0; j < _cols; j++) {
+      result(i, j) = result(i, j) * pow(-1, i + j);
+    }
+  }
+}
+
+S21Matrix S21Matrix::CalcComplements() {
+  if (_rows != _cols) {
+    throw std::logic_error("Invalid matrix size");
+  }
+
+  S21Matrix result(*this);
+
+  if (_rows == 1) {
+    result(0, 0) = 1;
+  } else {
+    Complements(result);
+  }
+
+  return result;
+}
+
+S21Matrix S21Matrix::InverseMatrix() {
+  S21Matrix result(_rows, _cols);
+  double det = Determinant();
+
+  if (fabs(det) < 1e-6) {
+    throw std::logic_error("determinant of matrix = 0");
+  } else {
+    if (_rows == 1) {
+      result(0, 0) = 1 / _matrix[0][0];
+    } else {
+      S21Matrix complement(_rows, _cols);
+      complement = CalcComplements();
+      result = complement.Transpose();
+      result.MulNumber(1 / det);
+    }
+  }
+
+  return result;
+}

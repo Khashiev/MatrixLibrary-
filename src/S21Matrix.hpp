@@ -17,7 +17,7 @@ class S21Matrix {
   void Complements(S21Matrix& result);
   void ResMatrix(S21Matrix& result);
   double GetMinor(int i, int j);
-  double DetTwo() const;
+  // double DetTwo() const;
 
  public:
   // constructors
@@ -40,8 +40,8 @@ class S21Matrix {
   void MulNumber(const double num);
   void MulMatrix(const S21Matrix& other);
   S21Matrix Transpose();
-  S21Matrix CalcComplements();
   double Determinant();
+  S21Matrix CalcComplements();
   S21Matrix InverseMatrix();
 
   // operators
