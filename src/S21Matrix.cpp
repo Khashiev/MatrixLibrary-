@@ -323,3 +323,84 @@ S21Matrix S21Matrix::InverseMatrix() {
 
   return result;
 }
+
+double &S21Matrix::operator()(int rows, int cols) {
+  if (rows < 0 || cols < 0 || rows >= _rows || cols >= _cols) {
+    throw std::out_of_range("Invalid element");
+  }
+
+  return _matrix[rows][cols];
+}
+
+double &S21Matrix::operator()(int rows, int cols) const {
+  if (rows < 0 || cols < 0 || rows >= _rows || cols >= _cols) {
+    throw std::out_of_range("Invalid element");
+  }
+
+  return _matrix[rows][cols];
+}
+
+S21Matrix &S21Matrix::operator=(const S21Matrix &other) {
+  S21Matrix(other._rows, other._cols);
+
+  for (int i = 0; i < _rows; i++) {
+    for (int j = 0; j < _cols; j++) {
+      _matrix[i][j] = other._matrix[i][j];
+    }
+  }
+
+  return *this;
+}
+
+bool S21Matrix::operator==(const S21Matrix &other) { return EqMatrix(other); }
+
+S21Matrix S21Matrix::operator+(const S21Matrix &other) {
+  S21Matrix res(*this);
+  res.SumMatrix(other);
+  return res;
+}
+
+S21Matrix S21Matrix::operator-(const S21Matrix &other) {
+  S21Matrix res(*this);
+  res.SubMatrix(other);
+  return res;
+}
+
+S21Matrix S21Matrix::operator*(const S21Matrix &other) {
+  S21Matrix res(*this);
+  res.MulMatrix(other);
+  return res;
+}
+
+S21Matrix &S21Matrix::operator+=(const S21Matrix &other) {
+  SumMatrix(other);
+  return *this;
+}
+
+S21Matrix &S21Matrix::operator-=(const S21Matrix &other) {
+  SubMatrix(other);
+  return *this;
+}
+
+S21Matrix &S21Matrix::operator*=(const S21Matrix &other) {
+  MulMatrix(other);
+  return *this;
+}
+
+S21Matrix &S21Matrix::operator*=(const double num) {
+  MulNumber(num);
+  return *this;
+}
+
+S21Matrix S21Matrix::operator*(const double num) {
+  S21Matrix res(*this);
+  res.MulNumber(num);
+  return res;
+}
+
+//////
+S21Matrix operator*(const double num, const S21Matrix &matrix) {
+  S21Matrix res(matrix);
+  res.MulNumber(num);
+  return res;
+}
