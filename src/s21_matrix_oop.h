@@ -1,12 +1,9 @@
 #ifndef __S21MATRIX_H__
 #define __S21MATRIX_H__
 
-#include <algorithm>
 #include <cmath>
-#include <cstring>
 #include <iostream>
 #include <stdexcept>
-#include <utility>
 
 class S21Matrix {
  private:
@@ -17,7 +14,6 @@ class S21Matrix {
   void Complements(S21Matrix& result);
   void ResMatrix(S21Matrix& result);
   double GetMinor(int i, int j);
-  // double DetTwo() const;
 
  public:
   // constructors

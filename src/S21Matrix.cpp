@@ -1,4 +1,4 @@
-#include "S21Matrix.hpp"
+#include "s21_matrix_oop.h"
 
 S21Matrix::S21Matrix() : _rows(2), _cols(2) {
   _matrix = new double *[_rows];
@@ -79,23 +79,23 @@ void S21Matrix::SetRows(int rows) {
 }
 
 void S21Matrix::SetCols(int cols) {
-  if (cols == _cols) return;
   if (cols < 0) {
     throw std::length_error("invalid cols size");
   }
 
-  for (int i = 0; i < _rows; i++) {
-    double *tmp = new double[cols]();
+  if (cols != _cols) {
+    for (int i = 0; i < _rows; i++) {
+      double *tmp = new double[cols]();
 
-    for (int j = 0; i < cols; j++) {
-      if (j < _cols) tmp[j] = _matrix[i][j];
+      for (int j = 0; j < cols; ++j) {
+        if (j < _cols) tmp[j] = _matrix[i][j];
+      }
+
+      delete[] _matrix[i];
+      _matrix[i] = tmp;
     }
-
-    delete[] _matrix[i];
-    _matrix[i] = tmp;
+    _cols = cols;
   }
-
-  _cols = cols;
 }
 
 bool S21Matrix::EqMatrix(const S21Matrix &other) {
@@ -155,17 +155,18 @@ void S21Matrix::MulMatrix(const S21Matrix &other) {
     throw std::out_of_range("Incorrect input");
   }
 
-  S21Matrix res(_rows, other._cols);
+  S21Matrix copy(*this);
+  SetCols(other._cols);
 
-  for (int i = 0; i < res._rows; i++) {
-    for (int j = 0; j < res._cols; j++) {
-      for (int k = 0; k < _cols; k++) {
-        res._matrix[i][j] += _matrix[i][k] * other._matrix[k][j];
+  for (int i = 0; i < _rows; i++) {
+    for (int j = 0; j < _cols; j++) {
+      double sum = 0;
+      for (int k = 0; k < copy._cols; ++k) {
+        sum += copy._matrix[i][k] * other._matrix[k][j];
       }
+      _matrix[i][j] = sum;
     }
   }
-
-  *this = res;
 }
 
 S21Matrix S21Matrix::Transpose() {
@@ -195,14 +196,14 @@ double S21Matrix::Determinant() {
 
   double result = 1;
   double number = 0;
-  S21Matrix temp(*this);
+  S21Matrix tmp(*this);
 
   for (int k = 0; k < _rows; k++) {
     for (int i = k; i < _rows; i++) {
-      number = temp(i, k);
+      number = tmp(i, k);
       if (fabs(number) >= 1e-6) {
         for (int j = 0; j < _cols; j++) {
-          temp(i, j) /= number;
+          tmp(i, j) /= number;
         }
         result *= number;
       } else if (i == k) {
@@ -211,23 +212,19 @@ double S21Matrix::Determinant() {
     }
 
     for (int i = k + 1; i < _rows; i++) {
-      if (fabs(temp(i, k) >= 1e-6)) {
+      if (fabs(tmp(i, k) >= 1e-6)) {
         for (int j = k; j < _cols; j++) {
-          temp(i, j) -= temp(k, j);
+          tmp(i, j) -= tmp(k, j);
         }
       }
     }
   }
 
-  result *= llround(temp(_rows - 1, _cols - 1) * 1e7) / 1e7;
+  result *= llround(tmp(_rows - 1, _cols - 1) * 1e7) / 1e7;
   result = llround(result * 1e7) / 1e7;
 
   return result;
 }
-
-// double S21Matrix::DetTwo() const {
-//   return _matrix[0][0] * _matrix[1][1] - _matrix[1][0] * _matrix[0][1];
-// }
 
 double S21Matrix::GetMinor(int i, int j) {
   double minor = 0.0;
@@ -259,12 +256,6 @@ double S21Matrix::GetMinor(int i, int j) {
     }
 
     minor = res.Determinant();
-
-    // if (res._cols > 2) {
-    //   minor = res.Determinant();
-    // } else {
-    //   minor = res.DetTwo();
-    // }
   }
 
   return minor;
@@ -398,7 +389,6 @@ S21Matrix S21Matrix::operator*(const double num) {
   return res;
 }
 
-//////
 S21Matrix operator*(const double num, const S21Matrix &matrix) {
   S21Matrix res(matrix);
   res.MulNumber(num);
