@@ -28,7 +28,7 @@ gcov_report: test
 	open report/index.html
 
 check: test
-	clang-format -style=Google -n *.cpp *.hpp
+	clang-format -style=Google -n *.cpp *.h
 	cppcheck --enable=all --suppress=missingIncludeSystem --inconclusive --check-config $(SRC) *.h
 ifeq ($(OS), Darwin)
 	leaks --atExit -- test
